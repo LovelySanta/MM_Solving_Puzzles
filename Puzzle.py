@@ -138,11 +138,15 @@ class Puzzle:
         for puzzlePiece in self.puzzlePieces:
             puzzlePiece.showPuzzlePiece()
 
+    def cutAllPiecesOut(self):
+        for puzzlePiece in self.puzzlePieces:
+            puzzlePiece.cutOut()
+
 
 
     def rotateRansac(self, contour):
-        T_i = len(contour)/8
-        T_d = 0.03
+        T_i = len(contour)/10
+        T_d = 0.015
 
         i = random.randint(1, len(contour)-1)
 
@@ -172,7 +176,6 @@ class Puzzle:
             else:
                 r1 = 2
                 divide = "z"
-            print("Rico = " + str(r1))
 
             # For all other points, check matching ricos
             for k in range(len(contour)):
