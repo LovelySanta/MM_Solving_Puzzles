@@ -113,24 +113,34 @@ class Puzzle:
     def findPuzzlePieces(self):
         cnts = cv2.findContours(self.mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]
 
-        # For each piece
+        # For each piece, cut out and rotate
         for i in range(len(cnts)):
 
-            # Cut the piece out, depending on the bounding box
             pts = cnts[i]
             x, y, w, h = cv2.boundingRect(pts)
-            piece = self.image[y:y+h, x:x+w]
+            if(h > len(self.image)/10 and w > len(self.image[0])/10):
 
-            # Find the rotation using ransac
-            hoek = self.rotateRansac(pts)
+                # Cut out the piece
+                piece = self.image[y:y+h, x:x+w]
 
-            # Rotate the picture over given angle using a tranformation matrix
-            M = cv2.getRotationMatrix2D((len(piece[0])*0.5, len(piece)*0.5),hoek,1)
-            rotatedPiece = cv2.warpAffine(piece,M,(len(piece[0])*2, len(piece)*2))
+                # Add extra space to picture so it won't get out of bound when rotating
+                empty = np.zeros(piece.shape, dtype = 'uint8')
+                # Add left and right
+                piece = np.concatenate((empty, piece, empty))
+                # Add above and beneath
+                empty = np.concatenate((empty, empty, empty))
+                piece = np.concatenate((empty, piece, empty), axis = 1)
 
-            # Create new piece instance and add it to the Puzzle:pieces
-            puzzlePiece = PuzzlePiece(rotatedPiece)
-            self.puzzlePieces.append(puzzlePiece)
+                # Find the rotation using ransac
+                hoek = self.rotateRansac(pts)
+
+                # Rotate the picture over given angle using a tranformation matrix
+                M = cv2.getRotationMatrix2D((len(piece[0])*0.5, len(piece)*0.5),hoek,1)
+                rotatedPiece = cv2.warpAffine(piece,M,(len(piece[0])*2, len(piece)*2))
+
+                # Create new piece instance and add it to the Puzzle:pieces
+                puzzlePiece = PuzzlePiece(rotatedPiece)
+                self.puzzlePieces.append(puzzlePiece)
 
 
 
@@ -145,24 +155,29 @@ class Puzzle:
 
 
     def rotateRansac(self, contour):
-        T_i = len(contour)/10
-        T_d = 0.015
-
-        i = random.randint(1, len(contour)-1)
+        T_i = len(contour)/8
+        teller = 0
+        line = [0,1]
+        i = random.randint(1,len(contour)-1)
 
         finished = False
         while(finished == False):
-            number_of_points = 0
+            line[0] = []
+            line[1] = []
+
+            # Change T_d dynamicly
+            teller = teller+1
+            T_d = 0.01+0.01*np.floor(teller*16.0/len(contour))
 
             # Random start point on first try, next time, just increment
             i = (i+17)%(len(contour)-1)
             x1 , y1 = contour[i][0]
 
             # Get 2nd point on fixed distance in array
-            if(i >= len(contour)/5):
-                x2 , y2 = contour[i-len(contour)/5][0]
+            if(i >= len(contour)/6):
+                x2 , y2 = contour[i-len(contour)/6][0]
             else:
-                x2 , y2 = contour[i+len(contour)/5][0]
+                x2 , y2 = contour[i+len(contour)/6][0]
 
             # Get Rico of this line < 45 degrees
             if abs(x2-x1) > abs(y2-y1):
@@ -177,32 +192,43 @@ class Puzzle:
                 r1 = 2
                 divide = "z"
 
-            # For all other points, check matching ricos
-            for k in range(len(contour)):
-                if(divide == "y"):
-                    # dx/dy
-                    if contour[k][0][1]-y1 == 0:
-                        r2 = r1 + T_d*2
+            if (divide != "z"):
+                # For all other points, check matching ricos
+                for k in range(len(contour)):
+                    if(divide == "y"):
+                        # dx/dy
+                        if contour[k][0][1]-y1 == 0:
+                            r2 = r1 + T_d*2
+                        else:
+                            r2 = (1.* (contour[k][0][0]-x1)) / (contour[k][0][1]-y1)
+                    elif(divide == "x"):
+                        # dy/dx
+                        if contour[k][0][0]-x1 == 0:
+                            r2 = r1 + T_d*2
+                        else:
+                            r2 = (1.* (contour[k][0][1]-y1)) / (contour[k][0][0]-x1)
                     else:
-                        r2 = (1.* (contour[k][0][0]-x1)) / (contour[k][0][1]-y1)
-                elif(divide == "x"):
-                    # dy/dx
-                    if contour[k][0][0]-x1 == 0:
-                        r2 = r1 + T_d*2
-                    else:
-                        r2 = (1.* (contour[k][0][1]-y1)) / (contour[k][0][0]-x1)
-                else:
-                    r2 = r1 + 2*T_d
+                        r2 = r1 + 2*T_d
 
-                # Check d(rico) < T_d
-                if(abs(r1-r2) < T_d):
-                    number_of_points = number_of_points + 1
-                if(number_of_points > T_i):
-                    finished = True
+                    # Check d(rico) < T_d
+                    if(abs(r1-r2) < T_d):
+                        line[0] = np.append(line[0],contour[k][0][0])
+                        line[1] = np.append(line[1],contour[k][0][1])
+
+                    # Check if we met T_i
+                    if(len(line[0]) > T_i):
+                        finished = True
+
+
         # Calculate the angle
-        hoek = np.arctan2(x1-x2,y1-y2)
+        if (divide == "x"):
+            A,B = np.polyfit(line[0], line[1], 1)
+            hoek = np.rad2deg(np.arctan(A))
+        else:
+            A,B = np.polyfit(line[1], line[0], 1)
+            hoek = 90-np.rad2deg(np.arctan(A))
 
         # Return the angle in degrees
-        return -(np.rad2deg(hoek))%90
+        return hoek
 
 ### End Of File ###

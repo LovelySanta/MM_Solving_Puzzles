@@ -34,7 +34,7 @@ def ransac(image, contour, x, y):
         T_d = 0.01+0.01*np.floor(teller*16.0/len(contour))
         img = np.copy(image)
         ### Random start point on first try
-        
+
         i = (i+17)%(len(contour)-1)
         x1 , y1 = contour[i][0]
         ### Get 2nd point on fixed distance in array
@@ -42,7 +42,7 @@ def ransac(image, contour, x, y):
             x2 , y2 = contour[i-len(contour)/6][0]
         else:
             x2 , y2 = contour[i+len(contour)/6][0]
-        
+
         ### Get Rico of this line < 45 degrees
         if abs(x2-x1) > abs(y2-y1):
             # dy/dx
@@ -57,7 +57,7 @@ def ransac(image, contour, x, y):
             divide = "z"
         print("Rico = " + str(r1))
 
-        ### For all other points, check matching ricos        
+        ### For all other points, check matching ricos
         for k in range(len(contour)):
             if(divide == "y"):
                 # dx/dy
@@ -71,29 +71,29 @@ def ransac(image, contour, x, y):
                     r2 = r1 + T_d*2
                 else:
                     r2 = (1.* (contour[k][0][1]-y1)) / (contour[k][0][0]-x1)
-            else: 
+            else:
                 r2 = r1 + 2*T_d
-                    
+
             # Check d(rico) < T_d
             if(abs(r1-r2) < T_d):
                 line[0] = np.append(line[0],contour[k][0][0])
                 line[1] = np.append(line[1],contour[k][0][1])
-                cv2.circle(img,tuple(contour[k][0]), 2, (255,255,255), 2)   
+                cv2.circle(img,tuple(contour[k][0]), 2, (255,255,255), 2)
             if(len(line[0]) > T_i):
                 finished = True
-           
+
     if (divide == "x"):
         A,B = np.polyfit(line[0], line[1], 1)
         hoek = np.rad2deg(np.arctan(A))
     else:
         A,B = np.polyfit(line[1], line[0], 1)
         hoek = 90-np.rad2deg(np.arctan(A))
-    
-    cv2.circle(img,tuple(contour[i][0]), 2, (255,0,0), 2)          
-    cv2.circle(img,(x2,y2), 2, (0,0,255), 2)   
-    
+
+    cv2.circle(img,tuple(contour[i][0]), 2, (255,0,0), 2)
+    cv2.circle(img,(x2,y2), 2, (0,0,255), 2)
+
     cv2.imshow('im', img)
-    
+
     return hoek
 
 
@@ -110,7 +110,7 @@ im_bw = cv2.LUT(im_g,lut)*255
 cv2.imshow('im', im)
 cv2.imshow('im_bw', im_bw)
 cv2.waitKey()
-cv2.destroyAllWindows() 
+cv2.destroyAllWindows()
 
 cnts = cv2.findContours(im_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
 
@@ -120,27 +120,27 @@ cnts = cv2.findContours(im_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
 #cv2.waitKey()
 #cv2.destroyAllWindows()
 
-for i in range(5):    
+for i in range(len(cnts)):
     pts = cnts[i]
     x,y,w,h = cv2.boundingRect(pts)
     if(h > len(im)/10 and w > len(im[0])/10):
         piece = im[y:y+h, x:x+w]
         angle = ransac(im, pts, x, y)
         hoek2 = angle
-        
+
         empty_piece = np.zeros(piece.shape, dtype = 'uint8')
         piece = np.concatenate((empty_piece, piece, empty_piece))
         empty_piece = np.concatenate((empty_piece, empty_piece, empty_piece))
         piece = np.concatenate((empty_piece, piece, empty_piece), axis = 1)
-        
+
         M = cv2.getRotationMatrix2D((len(piece[0])*0.5, len(piece)*0.5),hoek2,1)
         piece_r = cv2.warpAffine(piece,M,(len(piece[0]), len(piece)))
         color = get_rand_color()
-        
+
     #    for j in range(len(approx)-1):
     #        cv2.line(piece_r, tuple(approx[j][0]), tuple(approx[j+1][0]), color, 2)
     #    cv2.line(piece_r, tuple(approx[0][0]), tuple(approx[j+1][0]), color, 2)
-            
+
         cv2.imshow('piece', piece)
         cv2.imshow('piece_r', piece_r)
         cv2.waitKey()
@@ -155,20 +155,20 @@ for i in range(5):
 #c3 = np.concatenate((np.zeros([1,len(im_bw[0])], dtype = 'uint8'),im_bw[1:]), axis = 0)
 #c4 = np.concatenate((c3[:,:-1], np.zeros([len(im_bw),1], dtype = 'uint8')), axis = 1)
 #
-#for row in range(len(im)): 
+#for row in range(len(im)):
 #    for col in range(len(im[0])):
 #        if(im[row][col][0] != 0):
 #            w = (c1[row][col] != 0)
 #            nw = (c2[row][col] != 0)
 #            n = (c3[row][col] != 0)
 #            ne = (c4[row][col] != 0)
-#            
+#
 #            if(ne):
 #                color = im[row-1][col+1]
 #                im[row][col] = color
 #            elif(n):
 #                color = im[row-1][col]
-#                im[row][col] = color  
+#                im[row][col] = color
 #            elif(nw):
 #                color = im[row-1][col-1]
 #                im[row][col] = color
@@ -178,38 +178,6 @@ for i in range(5):
 #            else:
 #                color = get_rand_color()
 #                objects[(color)] = {'xl': col, 'xu': col, 'yl': row, 'yu': row}
-#        
+#
 #for i in range(len(im_bw)):
-#objects = {(5,5,5): 'try'} 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#objects = {(5,5,5): 'try'}

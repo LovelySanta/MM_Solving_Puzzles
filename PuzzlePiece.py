@@ -5,6 +5,7 @@ class PuzzlePiece:
 
     def __init__(self, piece):
         self.piece = piece
+        self.h, self.w, self.channels = self.piece.shape
 
         return None
 
@@ -16,9 +17,8 @@ class PuzzlePiece:
 
     def cutOut(self):
         # Cut out the picture so there is no background
-
         x, y, w, h = cv2.boundingRect(self.createMask())
-        self.piece = self.piece[y+2:y+h-2, x+1:x+w-2]
+        self.piece = self.piece[y:y+h, x:x+w]
 
     def createMask(self):
         lut = np.ones(256, dtype='uint8')
