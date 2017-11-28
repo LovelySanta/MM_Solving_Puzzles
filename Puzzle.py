@@ -3,6 +3,7 @@ import cv2
 import random
 from datetime import datetime
 random.seed(datetime.now())
+import math
 
 from PuzzlePiece import PuzzlePiece
 from basicFunc import getRandomColor
@@ -137,9 +138,20 @@ class Puzzle:
                 # Rotate the picture over given angle using a tranformation matrix
                 M = cv2.getRotationMatrix2D((len(piece[0])*0.5, len(piece)*0.5),hoek,1)
                 rotatedPiece = cv2.warpAffine(piece,M,(len(piece[0]), len(piece)))
-                
+
                 # Create new piece instance and add it to the Puzzle:pieces
                 puzzlePiece = PuzzlePiece(rotatedPiece)
+                self.puzzlePieces.append(puzzlePiece)
+
+
+
+    def cutPuzzlePieces(self, numberOfPieces):
+        size = int(math.ceil(math.sqrt(numberOfPieces)))
+        for i in range(0, size):
+            for j in range(0, size):
+                #cutoutpiece
+                piece = self.image[(i*len(self.image))/size:((i+1)*len(self.image))/size-1,(j*len(self.image[0]))/size:((j+1)*len(self.image[0]))/size-1]
+                puzzlePiece = PuzzlePiece(piece)
                 self.puzzlePieces.append(puzzlePiece)
 
 
@@ -160,7 +172,7 @@ class Puzzle:
         line = [0,1]
         i = random.randint(1,len(contour)-1)
         finished = False
-        
+
         while(finished == False):
             line[0] = []
             line[1] = []
