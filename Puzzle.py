@@ -111,7 +111,7 @@ class Puzzle:
 
 
     def findPuzzlePieces(self):
-        cnts = cv2.findContours(self.mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]
+        cnts = cv2.findContours(self.mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
 
         # For each piece, cut out and rotate
         for i in range(len(cnts)):
@@ -136,8 +136,8 @@ class Puzzle:
 
                 # Rotate the picture over given angle using a tranformation matrix
                 M = cv2.getRotationMatrix2D((len(piece[0])*0.5, len(piece)*0.5),hoek,1)
-                rotatedPiece = cv2.warpAffine(piece,M,(len(piece[0])*2, len(piece)*2))
-
+                rotatedPiece = cv2.warpAffine(piece,M,(len(piece[0]), len(piece)))
+                
                 # Create new piece instance and add it to the Puzzle:pieces
                 puzzlePiece = PuzzlePiece(rotatedPiece)
                 self.puzzlePieces.append(puzzlePiece)
@@ -155,16 +155,15 @@ class Puzzle:
 
 
     def rotateRansac(self, contour):
-        T_i = len(contour)/8
+        T_i = len(contour)/10
         teller = 0
         line = [0,1]
         i = random.randint(1,len(contour)-1)
-
         finished = False
+        
         while(finished == False):
             line[0] = []
             line[1] = []
-
             # Change T_d dynamicly
             teller = teller+1
             T_d = 0.01+0.01*np.floor(teller*16.0/len(contour))
@@ -214,11 +213,9 @@ class Puzzle:
                     if(abs(r1-r2) < T_d):
                         line[0] = np.append(line[0],contour[k][0][0])
                         line[1] = np.append(line[1],contour[k][0][1])
-
                     # Check if we met T_i
                     if(len(line[0]) > T_i):
                         finished = True
-
 
         # Calculate the angle
         if (divide == "x"):
@@ -227,7 +224,6 @@ class Puzzle:
         else:
             A,B = np.polyfit(line[1], line[0], 1)
             hoek = 90-np.rad2deg(np.arctan(A))
-
         # Return the angle in degrees
         return hoek
 

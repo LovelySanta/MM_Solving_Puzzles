@@ -20,6 +20,7 @@ class PuzzlePiece:
         x, y, w, h = cv2.boundingRect(self.createMask())
         self.piece = self.piece[y:y+h, x:x+w]
 
+
     def createMask(self):
         lut = np.ones(256, dtype='uint8')
         lut[0] = 0
