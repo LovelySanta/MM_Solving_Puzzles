@@ -30,10 +30,12 @@ def getMatch(e1, e2):
             match = min(match, sum(cv2.absdiff(e1, e2[i:i+len(e1)])))
         return match*1.0/len(e1)
     
-def getNeighbours(orientated, tiles, pieces):
+def getNeighbours( tiles, pieces):
     
+    if 
+    bestmatch = float("inf")
     for i in range(pieces):
-        #if(!tiles):
+        #if(!tiles)
         match = 0
         
         
