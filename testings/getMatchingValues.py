@@ -27,7 +27,7 @@ def getMatch(e1, e2):
         return 10000
     elif dif == 0:
         cv2.imshow('diff', abs(cv2.absdiff(e2, e1))[:,0])
-        
+
         return sum(sum(abs(cv2.absdiff(e2, e1)*1.0)))*256.0/len(e1)
     elif dif > 0:
         match = 10000*len(e2)
@@ -39,7 +39,7 @@ def getMatch(e1, e2):
         for i in range(0-dif):
             match = min(match, sum(sum(cv2.absdiff(e1, e2[i:i+len(e1)])*1.0)))
         return match*1.0/len(e1)
-    
+
 def getedge(piece, edge):
     if edge == "W":
         return(piece[:,0, ])
@@ -49,13 +49,13 @@ def getedge(piece, edge):
         return(piece[:,-1, ])
     if edge == "S":
         return(piece[-1,:, ])
-    
-def showPiece(pieces, i): 
+
+def showPiece(pieces, i):
     cv2.imshow('piece'+str(i), pieces[i])
 
-    
+
 def getBestMatch(pieces):
-    
+
     sides = ["N","E","W","S"]
     bestmatch = 10000
     matchid = [0,0,0,0]
@@ -80,14 +80,14 @@ def getBestMatch(pieces):
                         cv2.destroyAllWindows()
 
     return matches, matchid
-            
+
 
 
 
 puzzleType="tiles"
 puzzleArrangement="shuffled"
 puzzleSize="5x5"
-puzzleNumber="04"        
+puzzleNumber="04"
 puzzle = cv2.imread('images/'+puzzleType+'/'+puzzleType+'_'+puzzleArrangement+'/'+puzzleType+'_'+puzzleArrangement+'_'+puzzleSize+'_'+puzzleNumber+'.png')
 
 pieces = dividePuzzle(puzzle, 25)
@@ -115,33 +115,3 @@ cv2.destroyAllWindows()
 #cv2.imshow('im', puzzle)
 #cv2.waitKey()
 #cv2.destroyAllWindows()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

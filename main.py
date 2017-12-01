@@ -39,6 +39,10 @@ else: ### Puzzle without background
 
 
 
+### STEP 3: MATCH THE PIECES
+if puzzleHasJigSaw: # JigSaw
+    print("Not Implemented")
 
-#puzzle.cutPuzzlePieces(4)
-#puzzle.showAllPieces()
+else: #No JigSaw
+    matches, matchid = puzzle.getBestMatch()
+    print(matches[matchid[0]][matchid[1]][matchid[2]][matchid[3]])
