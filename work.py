@@ -21,12 +21,21 @@ def dividePuzzle(img, aantal):
             #addimage();
     return pieces
 
+def mirror(image,op):
+    if op == 'H':
+        image = cv2.flip(image, 0)
+    elif op == 'V': 
+        image = cv2.flip(image, 1)
+    elif op == 'D':
+        image = cv2.transpose(image)
+    return image   
+
 def getMatch(e1, e2):
     dif = len(e1)-len(e2)
     if abs(dif) > 5:
         return 10000
     elif dif == 0:
-        cv2.imshow('diff', abs(cv2.absdiff(e2, e1))[:,0])
+        #cv2.imshow('diff', abs(cv2.absdiff(e2, e1))[:,0])
         
         return sum(sum(abs(cv2.absdiff(e2, e1)*1.0)))*256.0/len(e1)
     elif dif > 0:
@@ -50,67 +59,73 @@ def getedge(piece, edge):
     if edge == "S":
         return(piece[-1,:, ])
     
-def showPiece(pieces, i): 
-    cv2.imshow('piece'+str(i), pieces[i])
+def showMatch(pieces, matchid): 
+    i,j,k,l = matchid
+    im = rotatePiece(pieces[i], k)
+    im2 = rotatePiece(pieces[j], (l+2)%4)
+    im = np.append(im2, im, axis = 0)
+    cv2.imshow('piece'+str(i), im)
 
+def rotatePiece(piece, i):
+    if i == 0: #North side
+        return piece
+    elif i == 1: #East side
+        return mirror(mirror(piece, 'D'), 'H')
+    elif i == 2:
+        return mirror(mirror(piece, 'H'), 'V')
+    elif i == 3:
+        return mirror(mirror(piece, 'H'), 'D')
+        
     
 def getBestMatch(pieces):
     
-    sides = ["N","E","W","S"]
+    sides = ["N","E","S","W"]
     bestmatch = 10000
     matchid = [0,0,0,0]
     matches = np.empty((len(pieces), len(pieces), len(sides), len(sides)), dtype = 'uint16')
     for i in range(len(pieces)):
-        for j in range(i, len(pieces)):
-            for k in range(len(sides)):
-                for l in range(len(sides)):
-                    if i == j:
-                        match = 10000
-                    else:
-                        match = int(getMatch(getedge(pieces[i],sides[k]), getedge(pieces[j],sides[l])))
-                    matches[i,j,k,l]= match
-                    if match < bestmatch:
-                        bestmatch = match
-                        showPiece(pieces, i)
-                        showPiece(pieces, j)
-                        print match
-                        matchid = [i,j,k,l]
-                        print(matchid)
-                        cv2.waitKey()
-                        cv2.destroyAllWindows()
-
+        for k in range(len(sides)):
+            e1 = getedge(pieces[i],sides[k])
+            for j in range(i, len(pieces)):
+                if not(i == j):
+                    for l in range(len(sides)):
+                        match = int(getMatch(e1, getedge(pieces[j],sides[l])))
+                        matches[i,j,k,l]= match
+                        if match < bestmatch:
+                            bestmatch = match
+                            showPiece(pieces, i, j)
+                            print match
+                            matchid = [i,j,k,l]
+                            showMatch(pieces, matchid)
+                            print(matchid)
+                            cv2.waitKey()
+                            cv2.destroyAllWindows()
+                else:
+                    matches[i,j,k]= list(10000 for l in range(len(sides)))
     return matches, matchid
             
-
-
+def getNeighbour(pieceNmr, sideNmr, matches):
+    sides = ["N","E","S","W"]
+    bestmatch = 10000
+    matchid = [0,0,0,0]
+    e1 = getedge(pieces[pieceNmr],sides[sideNmr])
+    for i in range(len(matches)):
+        for j in range(len(sides)):
+            match = int(getMatch(getedge(pieces[i],sides[j]), e1))
 
 puzzleType="tiles"
-puzzleArrangement="shuffled"
+puzzleArrangement="rotated"
 puzzleSize="5x5"
 puzzleNumber="04"        
 puzzle = cv2.imread('images/'+puzzleType+'/'+puzzleType+'_'+puzzleArrangement+'/'+puzzleType+'_'+puzzleArrangement+'_'+puzzleSize+'_'+puzzleNumber+'.png')
 
 pieces = dividePuzzle(puzzle, 25)
 
-#e = getedge(pieces[5],"W")
-#e2 = getedge(pieces[13],"W")
-#test = getMatch(e,e2)
-#showPiece(pieces, 5)
-#showPiece(pieces, 13)
-#cv2.waitKey()
-#cv2.destroyAllWindows()
 
-sides = ["N","E","W","S"]
+sides = ["N","E","S","W"]
 bestmatch = float("inf")
 matches, matchid = getBestMatch(pieces)
 
-showPiece(pieces, matchid[0])
-showPiece(pieces, matchid[1])
-print(matchid)
-
-print(matches[matchid[0]][matchid[1]][matchid[2]][matchid[3]])
-cv2.waitKey()
-cv2.destroyAllWindows()
 
 #cv2.imshow('im', puzzle)
 #cv2.waitKey()
