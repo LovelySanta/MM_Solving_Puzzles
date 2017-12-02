@@ -35,9 +35,15 @@ def getMatch(e1, e2):
     if abs(dif) > 5:
         return 50000
     elif dif == 0:
+<<<<<<< HEAD:work.py
         #cv2.imshow('diff', abs(cv2.absdiff(e2, e1))[:,0])
         
         return sum(sum(abs(cv2.absdiff(e2, e1)*0.1)))*100.0/len(e1)
+=======
+        cv2.imshow('diff', abs(cv2.absdiff(e2, e1))[:,0])
+
+        return sum(sum(abs(cv2.absdiff(e2, e1)*1.0)))*256.0/len(e1)
+>>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
     elif dif > 0:
         match = 50000
         for i in range(dif):
@@ -46,9 +52,15 @@ def getMatch(e1, e2):
     else:
         match = 50000
         for i in range(0-dif):
+<<<<<<< HEAD:work.py
             match = min(match, sum(sum(cv2.absdiff(e1, e2[i:i+len(e1)])*0.1)))
         return match*100.0/len(e1)
     
+=======
+            match = min(match, sum(sum(cv2.absdiff(e1, e2[i:i+len(e1)])*1.0)))
+        return match*1.0/len(e1)
+
+>>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
 def getedge(piece, edge):
     if type(edge) == type(5):
         sides = ["N","E","S","W"]
@@ -63,6 +75,7 @@ def getedge(piece, edge):
         return(piece[:,-1, ])
     elif side == "S":
         return(piece[-1,:, ])
+<<<<<<< HEAD:work.py
 
     
 def showMatch(pieces, matchid): 
@@ -86,6 +99,17 @@ def rotatePiece(piece, i):
 def getBestMatch(pieces):
     sides = ["N","E","S","W"]
     bestmatch = 50000
+=======
+
+def showPiece(pieces, i):
+    cv2.imshow('piece'+str(i), pieces[i])
+
+
+def getBestMatch(pieces):
+
+    sides = ["N","E","W","S"]
+    bestmatch = 10000
+>>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
     matchid = [0,0,0,0]
     matches = np.empty((len(pieces), len(pieces), len(sides), len(sides)), dtype = 'uint16')
     for i in range(len(pieces)):
@@ -112,6 +136,7 @@ def getBestMatch(pieces):
 #    print matches[matchid[1], matchid[0], matchid[3], matchid[2]]
 #    print matches[rev]
     return matches, matchid
+<<<<<<< HEAD:work.py
             
 def getNeighbour( matches, edgeId):
     pieceNmr, sideNmr = edgeId
@@ -279,12 +304,21 @@ def puzzleSolver(pieces, matches, matchid):
 #        combinePuzzle(pieces, placedPieces)
     return placedPieces, [minX]
        
+=======
+
+>>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
 
     
 puzzleType="tiles"
+<<<<<<< HEAD:work.py
 puzzleArrangement="rotated"
 puzzleSize="4x4"
 puzzleNumber="04"        
+=======
+puzzleArrangement="shuffled"
+puzzleSize="5x5"
+puzzleNumber="04"
+>>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
 puzzle = cv2.imread('images/'+puzzleType+'/'+puzzleType+'_'+puzzleArrangement+'/'+puzzleType+'_'+puzzleArrangement+'_'+puzzleSize+'_'+puzzleNumber+'.png')
 pieces = dividePuzzle(puzzle, 16)
 
@@ -302,6 +336,7 @@ cv2.imshow('im', im)
 cv2.waitKey()
 cv2.destroyAllWindows()
 
+<<<<<<< HEAD:work.py
 
 
 
@@ -331,3 +366,8 @@ cv2.destroyAllWindows()
 
 
 
+=======
+#cv2.imshow('im', puzzle)
+#cv2.waitKey()
+#cv2.destroyAllWindows()
+>>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py

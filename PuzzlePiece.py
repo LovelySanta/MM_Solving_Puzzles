@@ -9,11 +9,12 @@ class PuzzlePiece:
 
         return None
 
-    def showPuzzlePiece(self):
-        cv2.imshow('Original Piece', self.piece)
+    def showPuzzlePiece(self, windowName="", addWaitKey=True):
+        cv2.imshow(windowName, self.piece)
         #cv2.imshow('Rotated Piece', self.rotatedPiece)
-        cv2.waitKey()
-        cv2.destroyAllWindows()
+        if addWaitKey:
+            cv2.waitKey()
+            cv2.destroyAllWindows()
 
     def cutOut(self):
         # Cut out the picture so there is no background
@@ -31,5 +32,21 @@ class PuzzlePiece:
         mask = cv2.LUT(mask, lut)
 
         return mask
+
+    def getEdge(self, edge):
+        if edge == "W":
+            return(self.piece[:,0, ])
+
+        elif edge == "N":
+            return(self.piece[0,:, ])
+
+        elif edge == "E":
+            return(self.piece[:,-1, ])
+
+        elif edge == "S":
+            return(self.piece[-1,:, ])
+
+        else:
+            return None
 
 ### End Of File ###
