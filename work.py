@@ -73,13 +73,13 @@ def showMatch(pieces, matchid):
     cv2.imshow('piece'+str(i)+str(j), im)
 
 def rotatePiece(piece, i):
-    if i == 0: #North side
+    if i%4 == 0: #North side
         return piece
-    elif i == 1: #East side
+    elif i%4 == 1: #East side
         return mirror(mirror(piece, 'D'), 'H')
-    elif i == 2:
+    elif i%4 == 2:
         return mirror(mirror(piece, 'H'), 'V')
-    elif i == 3:
+    elif i%4 == 3:
         return mirror(mirror(piece, 'H'), 'D')
         
     
@@ -105,62 +105,202 @@ def getBestMatch(pieces):
 #                            cv2.destroyAllWindows()
                 else:
                     matches[i,j,k]= list(50000 for l in range(len(sides)))
-    print bestmatch
-    print(matchid)
-    showMatch(pieces, matchid)
-    showMatch(pieces, rev)
-    print matches[matchid[1], matchid[0], matchid[3], matchid[2]]
+#    print bestmatch
+#    print(matchid)
+#    showMatch(pieces, matchid)
+#    showMatch(pieces, rev)
+#    print matches[matchid[1], matchid[0], matchid[3], matchid[2]]
 #    print matches[rev]
     return matches, matchid
             
-def getNeighbour(pieces, matches, pieceNmr, sideNmr):
+def getNeighbour( matches, edgeId):
+    pieceNmr, sideNmr = edgeId
     matchid = [0,0,0,0]
     bestmatch = 50000
     for i in range(len(matches)):
         if (not i == pieceNmr):
             for j in range(len(matches[0,0,0])):
-                match = matches[i, pieceNmr, j, sideNmr]
+                match = matches[i, pieceNmr, j, sideNmr%4]
                 if match < bestmatch:
                     bestmatch = match
-                    matchid = [i, pieceNmr, j, sideNmr]
-                    showMatch(pieces, matchid)
-
-                    cv2.waitKey()
-                    cv2.destroyAllWindows()
-    print bestmatch
-    print matchid
+                    matchid = [i, pieceNmr, j, sideNmr%4]
+#                    showMatch(pieces, matchid)
+#
+#                    cv2.waitKey()
+#                    cv2.destroyAllWindows()
+#    print bestmatch
+#    print matchid
     return matchid
 
-def getLine(pieces, matches, matchid):
-    length = 2
-    new_edge = matchid[0, 2]
-    old_edge = matchid[1, 3]
-    old_match = getNeighbour(matches, old_edge)
-    line = list(0 for i in range(np.floor(np.sqrt(len(matches)))))
-    line[0] = matchid
-#    while length < len(line):
-        
-    
+def getNeighbourEx( matches, edgeId, exclusions):
+    pieceNmr, sideNmr = edgeId
+    matchid = [0,0,0,0]
+    bestmatch = 50000
+    for i in range(len(matches)):
+        if (not i == pieceNmr) and i not in exclusions:
+            for j in range(len(matches[0,0,0])):
+                match = matches[i, pieceNmr, j, sideNmr%4]
+                if match < bestmatch:
+                    bestmatch = match
+                    matchid = [i, pieceNmr, j, sideNmr%4]
+    return matchid    
 
+def getLine(pieces, matches, matchid):
+    
+    #functie werkt naar behoren onder sommige omstandigheden, echter niet genoeg om betrouwbaar te werken
+    #kijk naar volgende functie voor een beter werkende puzzelsolver
+    
+    i,j,k,l = matchid
+    im = rotatePiece(pieces[i], k+2)
+    im2 = rotatePiece(pieces[j], l)
+    im = np.append(im, im2, axis = 0)
+    cv2.imshow('line', im)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+    
+    length = 2
+    up_edge = [matchid[0], matchid[2]+2]
+    down_edge = [matchid[1], matchid[3]+2]
+    up_match = getNeighbour(matches, up_edge)
+    down_match= getNeighbour(matches, down_edge)
+    connections = [matchid]
+    
+    while length < int(np.sqrt(len(matches))):
+        length = length+1
+        if matches[tuple(up_match)] > matches[tuple(down_match)]:
+            print down_match
+            connections.append(down_match)
+            down_edge = [down_match[0], down_match[2]+2]
+            down_match= getNeighbour(matches, down_edge)
+            im2 = rotatePiece(pieces[down_edge[0]], down_edge[1]+2)
+            im = np.append(im, im2, axis = 0)
+#            cv2.imshow('line', im)
+#            cv2.waitKey()
+#            cv2.destroyAllWindows()            
+            
+        else:
+            print up_match
+            connections.append(up_match)
+            up_edge = [up_match[0], up_match[2]+2]
+            up_match = getNeighbour(matches, up_edge)
+            im2 = rotatePiece(pieces[up_edge[0]], up_edge[1])
+            im = np.append(im2, im, axis = 0)
+    cv2.imshow('line', im)
+    cv2.waitKey()
+    cv2.destroyAllWindows()   
+
+def combinePuzzle(pieces, placedPieces):
+    h,w,chan = np.shape(pieces[0])
+    count = int(np.sqrt(len(pieces)))
+    image = np.zeros((h*count, w*count, chan), dtype = 'uint8')
+    minx = miny = 0
+    for piece in placedPieces:
+        minx = min(minx,piece[1])
+        miny = min(miny,piece[0])
+    for i in range(len(placedPieces)):
+        y,x,r = placedPieces[i]
+        if not(r == 5):
+            im = rotatePiece(pieces[i], r)
+            x = x*h-minx*h
+            y = y*w-miny*w
+            image[x:x+h, y:y+w] = im
+    cv2.imshow('puzzle', image)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+    return image
+    
+def puzzleSolver(pieces, matches, matchid):
+    
+    i,j,k,l = matchid
+    im = rotatePiece(pieces[i], k+2)
+    im2 = rotatePiece(pieces[j], l)
+    im = np.append(im, im2, axis = 0)
+    cv2.imshow('line', im)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+    placedPieces = list([0,0,5] for i in range(len(pieces))) #gebruik rotatie 5 voor ongebruikte stukken
+    placedPieces[i] = [0,0,(k-2)%4]
+    placedPieces[j] = [0,1,l%4]
+    used = [i]
+    used.append(j)
+    edges = [[i,k+1], [i,k+2], [i,k+3], [j,l+1], [j, l+2], [j, l+3]]
+    neighbours = []
+    minX= maxX = minY = 0
+    maxY = 1
+    for edge in edges:
+        neighbours.append(getNeighbourEx(matches, edge, used))
+#    while len(possible > 0):
+    #bepaal de best matchende buur, en sla de matchId op in bestPiece
+    while(len(used) < len(pieces)):
+        bestMatch = 10000
+        for i in range(len(neighbours)):
+            match = matches[tuple(neighbours[i])]
+            if match < bestMatch:
+                bestMatch = match
+                bestPiece = i
+        #nu bepalen we aan welke kant het nieuwe stuk geplaatst moet worden
+        #dit gebeurt door de draaiing van het geplaatst stuk 
+        # legende: op = OLD piece, np = NEW PIECE, os = OLD side, ns= new side
+        print neighbours[bestPiece]
+        newP, oldP, ns, os = neighbours[bestPiece]
+        oldXYR = placedPieces[oldP]
+        side = (os-oldXYR[2])%4
+        if placedPieces[newP][2] == 5:
+            if side == 1 and oldXYR[0]<(minX+np.sqrt(len(pieces))-1):
+                for i in range(4):
+                    if not i == ns:
+                        neighbours.append(getNeighbourEx(matches, [newP, i], used))
+                placedPieces[newP] = [oldXYR[0]+1, oldXYR[1], (ns-2-side)%4]
+                maxX = max(maxX, oldXYR[0]+1)
+                used.append(newP)
+            elif side == 3 and oldXYR[0]>(maxX-np.sqrt(len(pieces))+1):
+                for i in range(4):
+                    if not i == ns:
+                        neighbours.append(getNeighbourEx(matches, [newP, i], used))
+                placedPieces[newP] = [oldXYR[0]-1, oldXYR[1], (ns-2-side)%4]
+                minX = min(minX, oldXYR[0]-1)
+                used.append(newP)
+            elif side == 0 and oldXYR[1]>(maxY-np.sqrt(len(pieces))+1):
+                for i in range(4):
+                    if not i == ns:
+                        neighbours.append(getNeighbourEx(matches, [newP, i], used))
+                placedPieces[newP] = [oldXYR[0], oldXYR[1]-1, (ns-2-side)%4]
+                minY = min(minY, oldXYR[1]-1)
+                used.append(newP)
+            elif side == 2 and oldXYR[1]<(minY+np.sqrt(len(pieces))-1): 
+                for i in range(4):
+                    if not i == ns:
+                        neighbours.append(getNeighbourEx(matches, [newP, i], used))
+                placedPieces[newP] = [oldXYR[0], oldXYR[1]+1, (ns-2-side)%4]
+                maxY = max(maxY, oldXYR[1]+1)
+                used.append(newP)
+        neighbours.pop(bestPiece)
+            
+#        combinePuzzle(pieces, placedPieces)
+    return placedPieces, [minX]
+       
+
+    
 puzzleType="tiles"
 puzzleArrangement="rotated"
-puzzleSize="5x5"
+puzzleSize="4x4"
 puzzleNumber="04"        
 puzzle = cv2.imread('images/'+puzzleType+'/'+puzzleType+'_'+puzzleArrangement+'/'+puzzleType+'_'+puzzleArrangement+'_'+puzzleSize+'_'+puzzleNumber+'.png')
-pieces = dividePuzzle(puzzle, 25)
+pieces = dividePuzzle(puzzle, 16)
 
 sides = ["N","E","S","W"]
 matches, matchid = getBestMatch(pieces)
-match2 = getNeighbour(pieces, matches, matchid[0], (matchid[2]+2)%4)
-match3 = getNeighbour(pieces, matches, matchid[1], (matchid[3]+2)%4)
-showMatch(pieces, match2)
-showMatch(pieces, match3)
+#getLine(pieces, matches, matchid)
+#print matches[tuple(matchid)]
 cv2.waitKey()
 cv2.destroyAllWindows()
 
-#cv2.imshow('im', puzzle)
-#cv2.waitKey()
-#cv2.destroyAllWindows()
+x, minx = puzzleSolver(pieces, matches, matchid)
+im = combinePuzzle(pieces, x)
+
+cv2.imshow('im', im)
+cv2.waitKey()
+cv2.destroyAllWindows()
 
 
 
