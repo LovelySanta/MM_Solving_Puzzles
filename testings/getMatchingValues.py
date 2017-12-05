@@ -1,3 +1,4 @@
+@@ -1,333 +0,0 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Nov 28 14:43:09 2017
@@ -24,26 +25,20 @@ def dividePuzzle(img, aantal):
 def mirror(image,op):
     if op == 'H':
         image = cv2.flip(image, 0)
-    elif op == 'V': 
+    elif op == 'V':
         image = cv2.flip(image, 1)
     elif op == 'D':
         image = cv2.transpose(image)
-    return image   
+    return image
 
 def getMatch(e1, e2):
     dif = len(e1)-len(e2)
     if abs(dif) > 5:
         return 50000
     elif dif == 0:
-<<<<<<< HEAD:work.py
         #cv2.imshow('diff', abs(cv2.absdiff(e2, e1))[:,0])
-        
-        return sum(sum(abs(cv2.absdiff(e2, e1)*0.1)))*100.0/len(e1)
-=======
-        cv2.imshow('diff', abs(cv2.absdiff(e2, e1))[:,0])
 
-        return sum(sum(abs(cv2.absdiff(e2, e1)*1.0)))*256.0/len(e1)
->>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
+        return sum(sum(abs(cv2.absdiff(e2, e1)*0.1)))*100.0/len(e1)
     elif dif > 0:
         match = 50000
         for i in range(dif):
@@ -52,15 +47,9 @@ def getMatch(e1, e2):
     else:
         match = 50000
         for i in range(0-dif):
-<<<<<<< HEAD:work.py
             match = min(match, sum(sum(cv2.absdiff(e1, e2[i:i+len(e1)])*0.1)))
         return match*100.0/len(e1)
-    
-=======
-            match = min(match, sum(sum(cv2.absdiff(e1, e2[i:i+len(e1)])*1.0)))
-        return match*1.0/len(e1)
 
->>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
 def getedge(piece, edge):
     if type(edge) == type(5):
         sides = ["N","E","S","W"]
@@ -75,10 +64,9 @@ def getedge(piece, edge):
         return(piece[:,-1, ])
     elif side == "S":
         return(piece[-1,:, ])
-<<<<<<< HEAD:work.py
 
-    
-def showMatch(pieces, matchid): 
+
+def showMatch(pieces, matchid):
     i,j,k,l = matchid
     im = rotatePiece(pieces[i], k)
     im2 = rotatePiece(pieces[j], (l+2)%4)
@@ -94,22 +82,11 @@ def rotatePiece(piece, i):
         return mirror(mirror(piece, 'H'), 'V')
     elif i%4 == 3:
         return mirror(mirror(piece, 'H'), 'D')
-        
-    
+
+
 def getBestMatch(pieces):
     sides = ["N","E","S","W"]
     bestmatch = 50000
-=======
-
-def showPiece(pieces, i):
-    cv2.imshow('piece'+str(i), pieces[i])
-
-
-def getBestMatch(pieces):
-
-    sides = ["N","E","W","S"]
-    bestmatch = 10000
->>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
     matchid = [0,0,0,0]
     matches = np.empty((len(pieces), len(pieces), len(sides), len(sides)), dtype = 'uint16')
     for i in range(len(pieces)):
@@ -136,8 +113,7 @@ def getBestMatch(pieces):
 #    print matches[matchid[1], matchid[0], matchid[3], matchid[2]]
 #    print matches[rev]
     return matches, matchid
-<<<<<<< HEAD:work.py
-            
+
 def getNeighbour( matches, edgeId):
     pieceNmr, sideNmr = edgeId
     matchid = [0,0,0,0]
@@ -168,13 +144,13 @@ def getNeighbourEx( matches, edgeId, exclusions):
                 if match < bestmatch:
                     bestmatch = match
                     matchid = [i, pieceNmr, j, sideNmr%4]
-    return matchid    
+    return matchid
 
 def getLine(pieces, matches, matchid):
-    
+
     #functie werkt naar behoren onder sommige omstandigheden, echter niet genoeg om betrouwbaar te werken
     #kijk naar volgende functie voor een beter werkende puzzelsolver
-    
+
     i,j,k,l = matchid
     im = rotatePiece(pieces[i], k+2)
     im2 = rotatePiece(pieces[j], l)
@@ -182,14 +158,14 @@ def getLine(pieces, matches, matchid):
     cv2.imshow('line', im)
     cv2.waitKey()
     cv2.destroyAllWindows()
-    
+
     length = 2
     up_edge = [matchid[0], matchid[2]+2]
     down_edge = [matchid[1], matchid[3]+2]
     up_match = getNeighbour(matches, up_edge)
     down_match= getNeighbour(matches, down_edge)
     connections = [matchid]
-    
+
     while length < int(np.sqrt(len(matches))):
         length = length+1
         if matches[tuple(up_match)] > matches[tuple(down_match)]:
@@ -201,8 +177,8 @@ def getLine(pieces, matches, matchid):
             im = np.append(im, im2, axis = 0)
 #            cv2.imshow('line', im)
 #            cv2.waitKey()
-#            cv2.destroyAllWindows()            
-            
+#            cv2.destroyAllWindows()
+
         else:
             print up_match
             connections.append(up_match)
@@ -212,7 +188,7 @@ def getLine(pieces, matches, matchid):
             im = np.append(im2, im, axis = 0)
     cv2.imshow('line', im)
     cv2.waitKey()
-    cv2.destroyAllWindows()   
+    cv2.destroyAllWindows()
 
 def combinePuzzle(pieces, placedPieces):
     h,w,chan = np.shape(pieces[0])
@@ -233,9 +209,9 @@ def combinePuzzle(pieces, placedPieces):
     cv2.waitKey()
     cv2.destroyAllWindows()
     return image
-    
+
 def puzzleSolver(pieces, matches, matchid):
-    
+
     i,j,k,l = matchid
     im = rotatePiece(pieces[i], k+2)
     im2 = rotatePiece(pieces[j], l)
@@ -264,7 +240,7 @@ def puzzleSolver(pieces, matches, matchid):
                 bestMatch = match
                 bestPiece = i
         #nu bepalen we aan welke kant het nieuwe stuk geplaatst moet worden
-        #dit gebeurt door de draaiing van het geplaatst stuk 
+        #dit gebeurt door de draaiing van het geplaatst stuk
         # legende: op = OLD piece, np = NEW PIECE, os = OLD side, ns= new side
         print neighbours[bestPiece]
         newP, oldP, ns, os = neighbours[bestPiece]
@@ -292,7 +268,7 @@ def puzzleSolver(pieces, matches, matchid):
                 placedPieces[newP] = [oldXYR[0], oldXYR[1]-1, (ns-2-side)%4]
                 minY = min(minY, oldXYR[1]-1)
                 used.append(newP)
-            elif side == 2 and oldXYR[1]<(minY+np.sqrt(len(pieces))-1): 
+            elif side == 2 and oldXYR[1]<(minY+np.sqrt(len(pieces))-1):
                 for i in range(4):
                     if not i == ns:
                         neighbours.append(getNeighbourEx(matches, [newP, i], used))
@@ -300,25 +276,16 @@ def puzzleSolver(pieces, matches, matchid):
                 maxY = max(maxY, oldXYR[1]+1)
                 used.append(newP)
         neighbours.pop(bestPiece)
-            
+
 #        combinePuzzle(pieces, placedPieces)
     return placedPieces, [minX]
-       
-=======
 
->>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
 
-    
+
 puzzleType="tiles"
-<<<<<<< HEAD:work.py
 puzzleArrangement="rotated"
 puzzleSize="4x4"
-puzzleNumber="04"        
-=======
-puzzleArrangement="shuffled"
-puzzleSize="5x5"
 puzzleNumber="04"
->>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
 puzzle = cv2.imread('images/'+puzzleType+'/'+puzzleType+'_'+puzzleArrangement+'/'+puzzleType+'_'+puzzleArrangement+'_'+puzzleSize+'_'+puzzleNumber+'.png')
 pieces = dividePuzzle(puzzle, 16)
 
@@ -335,39 +302,3 @@ im = combinePuzzle(pieces, x)
 cv2.imshow('im', im)
 cv2.waitKey()
 cv2.destroyAllWindows()
-
-<<<<<<< HEAD:work.py
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=======
-#cv2.imshow('im', puzzle)
-#cv2.waitKey()
-#cv2.destroyAllWindows()
->>>>>>> 5d4eb4e3aacce8bb25d49fea3d130ab72c8717c3:testings/getMatchingValues.py
