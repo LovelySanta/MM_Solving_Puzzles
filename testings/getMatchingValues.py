@@ -1,4 +1,3 @@
-@@ -1,333 +0,0 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Nov 28 14:43:09 2017
@@ -286,7 +285,7 @@ puzzleType="tiles"
 puzzleArrangement="rotated"
 puzzleSize="4x4"
 puzzleNumber="04"
-puzzle = cv2.imread('images/'+puzzleType+'/'+puzzleType+'_'+puzzleArrangement+'/'+puzzleType+'_'+puzzleArrangement+'_'+puzzleSize+'_'+puzzleNumber+'.png')
+puzzle = cv2.imread(puzzleType+'/'+puzzleType+'_'+puzzleArrangement+'/'+puzzleType+'_'+puzzleArrangement+'_'+puzzleSize+'_'+puzzleNumber+'.png')
 pieces = dividePuzzle(puzzle, 16)
 
 sides = ["N","E","S","W"]
