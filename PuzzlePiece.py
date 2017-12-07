@@ -4,7 +4,7 @@ import cv2
 class PuzzlePiece:
 
     def __init__(self, piece):
-        self.sides = ["N","E","W","S"]
+        self.sides = ["N","E","S","W"]
 
         self.piece = piece
         self.h, self.w, self.channels = self.piece.shape
@@ -54,22 +54,22 @@ class PuzzlePiece:
         else:
             return None
 
-    def mirrorPiece(self, axis, piece=self.piece):
+    def mirrorPiece(self, axis, piece):
         if axis == 'H':
-            return cv2.flip(self.piece, 0)
+            return cv2.flip(piece, 0)
         elif axis == 'V':
-            return cv2.flip(self.piece, 1)
+            return cv2.flip(piece, 1)
         elif axis == 'D':
-            return = cv2.transpose(self.piece)
+            return cv2.transpose(piece)
 
     def rotatePiece(self, rotation):
             if rotation % 4 == 0: # North side
                 return self.piece
             elif rotation % 4 == 1: # East side
-                return self.mirror('H', self.mirror('D'))
+                return self.mirrorPiece('H', self.mirrorPiece('D', self.piece))
             elif rotation % 4 == 2: # South side
-                return self.mirror('V', self.mirror('H'))
+                return self.mirrorPiece('V', self.mirrorPiece('H', self.piece))
             elif rotation % 4 == 3: # West side
-                return self.mirror('D', self.mirror('H'))
+                return self.mirrorPiece('D', self.mirrorPiece('H', self.piece))
 
 ### End Of File ###
