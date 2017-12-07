@@ -308,7 +308,6 @@ class Puzzle:
                                 edge1,
                                 self.puzzlePieces[j].getEdge(self.sides[l])  ))
                             matches[i,j,k,l] = match
-                            matches[j,i,l,k] = match
 
                             # Check if the match is the best match up till now
                             if match < bestmatch:
@@ -365,7 +364,7 @@ class Puzzle:
         matchPiece2, matchSide2 = piecesToMatch[1]
 
         matchId1 = matchId2 = [-1,0,0,0]
-        bestMatchValue = 50000000
+        bestMatchValue = 500000000
         # For each unused piece
         for i in range(len(matches)):
             if i not in self.usedPieces:
@@ -498,7 +497,7 @@ class Puzzle:
             # Get the two pieces with edges to check ready to make a 2D match
             newPiece = np.add(self.solvedPuzzle[tuple(newLoc)], [0,d+1])
             oldPiece = np.add(self.solvedPuzzle[tuple(oldLoc2)], [0, d])
-            newNeighbour = self.getNextBestMatches2D([newPiece, oldPiece], matches)
+            newNeighbour = self.getNextBestMatches2D([oldPiece, newPiece], matches)
             # We found a match, add it to the pieces to match, and do again in same direction
             newLoc = np.add(newLoc, dir2)
             self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2])]
