@@ -365,7 +365,7 @@ class Puzzle:
         matchPiece2, matchSide2 = piecesToMatch[1]
 
         matchId1 = matchId2 = [-1,0,0,0]
-        bestMatchValue = 5000000
+        bestMatchValue = 50000000
         # For each unused piece
         for i in range(len(matches)):
             if i not in self.usedPieces:
@@ -416,6 +416,8 @@ class Puzzle:
                     bestMatch = newMatch
                     matchId = [k,j+1, newMatchId[0], (newMatchId[2]+1)%4, 1]
                     bestMatchId = newMatchId
+        else:
+            print("Not checking for a horizontal match")
 
         # If not colums full size
         if i != (puzzleSize-1):
@@ -425,7 +427,7 @@ class Puzzle:
                 newMatch = matches[tuple(newMatchId)]
                 if newMatch < bestMatch:
                     bestMatch = newMatch
-                    matchId = [-1,5, newMatchId[0], (newMatchId[2]+2)%4, 0]
+                    matchId = [-1,k, newMatchId[0], (newMatchId[2]+2)%4, 0]
                     bestMatchId = newMatchId
 
                 # Check the bottom side
@@ -435,6 +437,8 @@ class Puzzle:
                     bestMatch = newMatch
                     matchId = [i+1,k, newMatchId[0], (newMatchId[2]-0)%4, 2]
                     bestMatchId = newMatchId
+        else:
+            print("Not checking for a vertical match")
 
         return matchId
 
@@ -479,6 +483,7 @@ class Puzzle:
             newPiece = np.add(self.solvedPuzzle[tuple(newLoc)], [0,d-1])
             oldPiece = np.add(self.solvedPuzzle[tuple(oldLoc1)], [0, d])
             newNeighbour = self.getNextBestMatches2D([newPiece, oldPiece], matches)
+            newNeighbour[2] = 2 - newNeighbour[2]
             # We found a match, add it to the pieces to match, and do again in same direction
             newLoc = np.add(newLoc, dir1)
             self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2])]
@@ -498,7 +503,7 @@ class Puzzle:
             newLoc = np.add(newLoc, dir2)
             self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2])]
             self.usedPieces.append(newNeighbour[0])
-            oldLoc2 = np.add(oldLoc2, dir1)
+            oldLoc2 = np.add(oldLoc2, dir2)
 
 
 
@@ -516,27 +521,26 @@ class Puzzle:
         self.showSolvedPuzzle()
 
         # Now we got the start of our puzzle, now lets solve all other pieces
-        #while len(usedPieces) < len(self.puzzlePieces):
+        while len(self.usedPieces) < len(self.puzzlePieces):
             # The puzzle is rectangular, now we add an extra piece to make an L shape
-        matchId = self.expandRectangle(matches)
-        #print(matchId)
-        # Check if the piece to add is left or on top, if so, make room
-        if matchId[0] == -1:
-            self.solvedPuzzle = np.append(np.full((1,len(self.solvedPuzzle), 2), -1, dtype = 'int8'),self.solvedPuzzle[0:-1], axis = 0)
-            matchId[0] = 0
-            self.showSolvedPuzzle()
-        elif matchId[1] == -1:
-            self.solvedPuzzle = np.append(np.full((len(self.solvedPuzzle), 1, 2), -1, dtype = 'int8'),self.solvedPuzzle[:,0:-1], axis = 1)
-            matchId[1] = 0
+            matchId = self.expandRectangle(matches)
+            #print(matchId)
+            # Check if the piece to add is left or on top, if so, make room
+            if matchId[0] == -1:
+                self.solvedPuzzle = np.append(np.full((1,len(self.solvedPuzzle), 2), -1, dtype = 'int8'),self.solvedPuzzle[0:-1], axis = 0)
+                matchId[0] = 0
+                self.showSolvedPuzzle()
+            elif matchId[1] == -1:
+                self.solvedPuzzle = np.append(np.full((len(self.solvedPuzzle), 1, 2), -1, dtype = 'int8'),self.solvedPuzzle[:,0:-1], axis = 1)
+                matchId[1] = 0
+                self.showSolvedPuzzle()
+            self.solvedPuzzle[matchId[0]][matchId[1]] = [matchId[2], matchId[3]]
+            self.usedPieces.append(matchId[2])
             self.showSolvedPuzzle()
 
-        self.solvedPuzzle[matchId[0]][matchId[1]] = [matchId[2], matchId[3]]
-        self.usedPieces.append(matchId[2])
-        self.showSolvedPuzzle()
-
-        # We added an extra piece, now we have an L shaped, fill it up to a rectangle again
-        self.fillRectangle(matches, matchId)
-        self.showSolvedPuzzle()
+            # We added an extra piece, now we have an L shaped, fill it up to a rectangle again
+            self.fillRectangle(matches, matchId)
+            self.showSolvedPuzzle()
 
 
 ### End Of File ###

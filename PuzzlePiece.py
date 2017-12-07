@@ -11,8 +11,8 @@ class PuzzlePiece:
 
         return None
 
-    def showPuzzlePiece(self, windowName="", addWaitKey=True):
-        cv2.imshow(windowName, self.piece)
+    def showPuzzlePiece(self, windowName="", addWaitKey=True, rotation=0):
+        cv2.imshow(windowName, self.rotatePiece(rotation))
         #cv2.imshow('Rotated Piece', self.rotatedPiece)
         if addWaitKey:
             cv2.waitKey()
