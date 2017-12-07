@@ -1,10 +1,11 @@
 
 from Puzzle import Puzzle
+import cv2
 
 
 puzzleType="tiles"
-puzzleArrangement="shuffled"
-puzzleSize="5x5"
+puzzleArrangement="rotated"
+puzzleSize="3x3"
 puzzleNumber="04"
 
 
@@ -16,7 +17,7 @@ puzzle.readImageFromFile('images/'+puzzleType+'/'+puzzleType+'_'+puzzleArrangeme
 
 #TODO: determine settings
 puzzleHasBackground = False
-puzzlePiecesAmount = 25 # Only needed if not with background
+puzzlePiecesAmount = 9 # Only needed if not with background
 puzzleHasJigSaw = False
 
 
@@ -44,5 +45,5 @@ if puzzleHasJigSaw: # JigSaw
     print("Not Implemented")
 
 else: #No JigSaw
-    matches, matchid = puzzle.getBestMatch()
-    print(matches[matchid[0]][matchid[1]][matchid[2]][matchid[3]])
+    puzzle.solvePuzzle()
+    ##print(matches[matchid[0]][matchid[1]][matchid[2]][matchid[3]])
