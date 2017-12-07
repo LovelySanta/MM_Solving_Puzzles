@@ -172,14 +172,16 @@ class Puzzle:
 
 
     def showMatch(self, matchId):
-        i,j,k,l = matchid
+        i,j,k,l = matchId
         # First matching image
-        piece1 = rotatePiece(self.pieces[i], k)
+        piece1 = self.puzzlePieces[i].rotatePiece(k)
         # Second matching image
-        piece2 = rotatePiece(self.pieces[j], (l+2)%4)
+        piece2 = self.puzzlePieces[j].rotatePiece((l+2)%4)
 
         match = np.append(piece2, piece1, axis = 0)
         cv2.imshow('pieces'+str(i)+' and '+str(j), match)
+        cv2.waitKey()
+        cv2.destroyAllWindows()
 
 
 
@@ -375,7 +377,9 @@ class Puzzle:
                     if matchValue < bestMatchValue:
                         bestMatchValue = matchValue
                         matchId1 = [i, matchPiece1, j, matchSide1%4]
-                        matchId2 = [i, matchPiece2, j, matchSide2%4]
+                        matchId2 = [i, matchPiece2, j+1, matchSide2%4]
+        self.showMatch(matchId1)
+        self.showMatch(matchId2)
         return matchId1
 
 
@@ -477,7 +481,7 @@ class Puzzle:
             newNeighbour = self.getNextBestMatches2D([newPiece, oldPiece], matches)
             # We found a match, add it to the pieces to match, and do again in same direction
             newLoc = np.add(newLoc, dir1)
-            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]+2)]
+            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2])]
             self.usedPieces.append(newNeighbour[0])
             oldLoc1 = np.add(oldLoc1, dir1)
 
@@ -492,7 +496,7 @@ class Puzzle:
             newNeighbour = self.getNextBestMatches2D([newPiece, oldPiece], matches)
             # We found a match, add it to the pieces to match, and do again in same direction
             newLoc = np.add(newLoc, dir2)
-            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]+2)]
+            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2])]
             self.usedPieces.append(newNeighbour[0])
             oldLoc2 = np.add(oldLoc2, dir1)
 
