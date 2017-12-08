@@ -21,7 +21,7 @@ class Puzzle:
         }
         self.mask = None
         self.puzzlePieces = []
-
+        self.matches = []
         self.usedPieces = []
         self.solvedPuzzle = []
 
@@ -179,9 +179,9 @@ class Puzzle:
         piece2 = self.puzzlePieces[j].rotatePiece((l+2)%4)
 
         match = np.append(piece2, piece1, axis = 0)
-        cv2.imshow('pieces'+str(i)+' and '+str(j), match)
-        cv2.waitKey()
-        cv2.destroyAllWindows()
+        cv2.imshow('pieces'+str(i)+ str(k)+' and '+str(j)+ str(l), match)
+#        cv2.waitKey()
+#        cv2.destroyAllWindows()
 
 
 
@@ -293,7 +293,7 @@ class Puzzle:
 
         numberOfPieces = len(self.puzzlePieces)
         numberOfSides = len(self.sides)
-        matches = np.empty((numberOfPieces, numberOfPieces, numberOfSides, numberOfSides), dtype = 'float64')
+        
 
         # Iterate over all edges of all pieces...
         for i in range(numberOfPieces):
@@ -307,18 +307,22 @@ class Puzzle:
                             match = int(self.getMatchingValue(
                                 edge1,
                                 self.puzzlePieces[j].getEdge(self.sides[l])  ))
-                            matches[i,j,k,l] = match
+                            self.matches[i,j,k,(l)%4] = match
 
                             # Check if the match is the best match up till now
                             if match < bestmatch:
                                 bestmatch = match
                                 matchid = [i,j,k,l]
                                 rev = [j,i,l,k]
+                            if j == 2 and k == 2 and i == 8:
+                                print match
+                                print [i,j,k,l]
+                                self.showMatch([i,j,k,l])
                     else:
-                        matches[i,j,k]= list(noMatchValue for l in range(len(self.sides)))
+                        self.matches[i,j,k]= list(noMatchValue for l in range(len(self.sides)))
 
         # Return all matching values we calculated and the index of the two best matchings
-        return matches, matchid
+        return matchid
 
 
 
@@ -342,16 +346,16 @@ class Puzzle:
 
 
 
-    def getNextBestMatches1D(self, pieceToMatch, matches):
+    def getNextBestMatches1D(self, pieceToMatch):
         matchPiece, matchSide = pieceToMatch
         matchId = [-1,0,0,0]
         bestMatchValue = 50000
         # For each unused piece
-        for i in range(len(matches)):
+        for i in range(len(self.matches)):
             if i not in self.usedPieces:
                 # For each side of the piece
-                for j in range(len(matches[0,0,0])):
-                    matchValue = matches[i, matchPiece, j, matchSide%4]
+                for j in range(len(self.matches[0,0,0])):
+                    matchValue = self.matches[i, matchPiece, j, matchSide%4]
                     if matchValue < bestMatchValue:
                         bestMatchValue = matchValue
                         matchId = [i, matchPiece, j, matchSide%4]
@@ -359,30 +363,35 @@ class Puzzle:
 
 
 
-    def getNextBestMatches2D(self, piecesToMatch, matches):
+    def getNextBestMatches2D(self, piecesToMatch):
         matchPiece1, matchSide1 = piecesToMatch[0]
         matchPiece2, matchSide2 = piecesToMatch[1]
 
         matchId1 = matchId2 = [-1,0,0,0]
         bestMatchValue = 500000000
         # For each unused piece
-        for i in range(len(matches)):
+        for i in range(len(self.matches)):
             if i not in self.usedPieces:
                 # For each side of the piece
-                for j in range(len(matches[0,0,0])):
-                    matchValue1 = matches[i, matchPiece1, j, matchSide1%4]
-                    matchValue2 = matches[i, matchPiece2, (j+1)%4, matchSide2%4]
-                    matchValue = matchValue1**2 + matchValue2**2
+                for j in range(len(self.matches[0,0,0])):
+                    matchValue1 = self.matches[i, matchPiece1, j, (matchSide1)%4]
+                    matchValue2 = self.matches[i, matchPiece2, (j+1)%4, (matchSide2+1)%4]
+                    matchValue = matchValue1**2/100.0 + matchValue2**2/100.0
                     if matchValue < bestMatchValue:
                         bestMatchValue = matchValue
                         matchId1 = [i, matchPiece1, j, matchSide1%4]
                         matchId2 = [i, matchPiece2, j+1, matchSide2%4]
+#                    self.showMatch([i, matchPiece1, j, matchSide1%4])
+#                    self.showMatch([i, matchPiece2, j+1, matchSide2%4])
+#                    print matchValue, matchValue1, matchValue2
+#                    print [i, matchPiece1, j, matchSide1%4]
         self.showMatch(matchId1)
         self.showMatch(matchId2)
+        print matchId1, matchId2
         return matchId1
 
 
-    def expandRectangle(self, matches):
+    def expandRectangle(self):
         #check for max width
         puzzleSize = len(self.solvedPuzzle)
         i = j = puzzleSize - 1
@@ -401,16 +410,16 @@ class Puzzle:
             # Check horizontal edges for each row
             for k in range(i+1):
                 # Check the left side
-                newMatchId = self.getNextBestMatches1D([self.solvedPuzzle[k][0][0], (self.solvedPuzzle[k][0][1]-1)%4], matches)
-                newMatch = matches[tuple(newMatchId)]
+                newMatchId = self.getNextBestMatches1D([self.solvedPuzzle[k][0][0], (self.solvedPuzzle[k][0][1]-1)%4])
+                newMatch = self.matches[tuple(newMatchId)]
                 if newMatch < bestMatch:
                     bestMatch = newMatch
                     matchId = [k,-1, newMatchId[0], (newMatchId[2]-1)%4, 3]
                     bestMatchId = newMatchId
 
                 # Check the right side
-                newMatchId = self.getNextBestMatches1D([self.solvedPuzzle[k][j][0], (self.solvedPuzzle[k][j][1]+1)%4], matches)
-                newMatch = matches[tuple(newMatchId)]
+                newMatchId = self.getNextBestMatches1D([self.solvedPuzzle[k][j][0], (self.solvedPuzzle[k][j][1]+1)%4])
+                newMatch = self.matches[tuple(newMatchId)]
                 if newMatch < bestMatch:
                     bestMatch = newMatch
                     matchId = [k,j+1, newMatchId[0], (newMatchId[2]+1)%4, 1]
@@ -422,16 +431,16 @@ class Puzzle:
         if i != (puzzleSize-1):
             for k in range(j+1):
                 # Check the top side
-                newMatchId = self.getNextBestMatches1D([self.solvedPuzzle[0][k][0], (self.solvedPuzzle[0][k][1]-0)%4], matches)
-                newMatch = matches[tuple(newMatchId)]
+                newMatchId = self.getNextBestMatches1D([self.solvedPuzzle[0][k][0], (self.solvedPuzzle[0][k][1]-0)%4])
+                newMatch = self.matches[tuple(newMatchId)]
                 if newMatch < bestMatch:
                     bestMatch = newMatch
                     matchId = [-1,k, newMatchId[0], (newMatchId[2]+2)%4, 0]
                     bestMatchId = newMatchId
 
                 # Check the bottom side
-                newMatchId = self.getNextBestMatches1D([self.solvedPuzzle[i][k][0], (self.solvedPuzzle[i][k][1]+2)%4], matches)
-                newMatch = matches[tuple(newMatchId)]
+                newMatchId = self.getNextBestMatches1D([self.solvedPuzzle[i][k][0], (self.solvedPuzzle[i][k][1]+2)%4])
+                newMatch = self.matches[tuple(newMatchId)]
                 if newMatch < bestMatch:
                     bestMatch = newMatch
                     matchId = [i+1,k, newMatchId[0], (newMatchId[2]-0)%4, 2]
@@ -443,7 +452,7 @@ class Puzzle:
 
 
 
-    def fillRectangle(self, matches, matchId):
+    def fillRectangle(self, matchId):
         x, y, n, r, d = matchId
         newLoc = [x,y]
 
@@ -459,7 +468,7 @@ class Puzzle:
             dir1 = [0, 1]
             oldLoc2 = [x-1, y-1]
             dir2 = [0,-1]
-        # Added piece to the left, fill top/bottm
+        # Added piece to the left, fill top/bottom
         elif d == 3:
             oldLoc1 = [x+1, y+1]
             dir1 = [1, 0]
@@ -481,11 +490,11 @@ class Puzzle:
             # Get the two pieces with edges to check ready to make a 2D match
             newPiece = np.add(self.solvedPuzzle[tuple(newLoc)], [0,d-1])
             oldPiece = np.add(self.solvedPuzzle[tuple(oldLoc1)], [0, d])
-            newNeighbour = self.getNextBestMatches2D([newPiece, oldPiece], matches)
-            newNeighbour[2] = 2 - newNeighbour[2]
+            newNeighbour = self.getNextBestMatches2D([newPiece, oldPiece])
+            newNeighbour[2] = newNeighbour[2]
             # We found a match, add it to the pieces to match, and do again in same direction
             newLoc = np.add(newLoc, dir1)
-            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2])]
+            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]+d+1)]
             self.usedPieces.append(newNeighbour[0])
             oldLoc1 = np.add(oldLoc1, dir1)
 
@@ -497,17 +506,19 @@ class Puzzle:
             # Get the two pieces with edges to check ready to make a 2D match
             newPiece = np.add(self.solvedPuzzle[tuple(newLoc)], [0,d+1])
             oldPiece = np.add(self.solvedPuzzle[tuple(oldLoc2)], [0, d])
-            newNeighbour = self.getNextBestMatches2D([oldPiece, newPiece], matches)
+            newNeighbour = self.getNextBestMatches2D([oldPiece, newPiece])
             # We found a match, add it to the pieces to match, and do again in same direction
             newLoc = np.add(newLoc, dir2)
-            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2])]
+            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]+d+2)]
             self.usedPieces.append(newNeighbour[0])
             oldLoc2 = np.add(oldLoc2, dir2)
 
 
 
     def solvePuzzle(self):
-        matches, matchid = self.getBestMatch()
+        
+        self.matches = np.empty((len(self.puzzlePieces), len(self.puzzlePieces), 4, 4), dtype = 'float64')
+        matchid = self.getBestMatch()
         piece1, piece2, orientation1, orientation2 = matchid
 
         puzzleSize = int(np.sqrt(len(self.puzzlePieces)))
@@ -522,7 +533,7 @@ class Puzzle:
         # Now we got the start of our puzzle, now lets solve all other pieces
         while len(self.usedPieces) < len(self.puzzlePieces):
             # The puzzle is rectangular, now we add an extra piece to make an L shape
-            matchId = self.expandRectangle(matches)
+            matchId = self.expandRectangle()
             #print(matchId)
             # Check if the piece to add is left or on top, if so, make room
             if matchId[0] == -1:
@@ -538,7 +549,7 @@ class Puzzle:
             self.showSolvedPuzzle()
 
             # We added an extra piece, now we have an L shaped, fill it up to a rectangle again
-            self.fillRectangle(matches, matchId)
+            self.fillRectangle(matchId)
             self.showSolvedPuzzle()
 
 
