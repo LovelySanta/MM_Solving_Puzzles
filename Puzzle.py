@@ -293,7 +293,7 @@ class Puzzle:
 
         numberOfPieces = len(self.puzzlePieces)
         numberOfSides = len(self.sides)
-        
+
 
         # Iterate over all edges of all pieces...
         for i in range(numberOfPieces):
@@ -314,10 +314,10 @@ class Puzzle:
                                 bestmatch = match
                                 matchid = [i,j,k,l]
                                 rev = [j,i,l,k]
-                            if j == 2 and k == 2 and i == 8:
-                                print match
-                                print [i,j,k,l]
-                                self.showMatch([i,j,k,l])
+                            #if j == 2 and k == 2 and i == 8:
+                                #print match
+                                #print [i,j,k,l]
+                                # self.showMatch([i,j,k,l])
                     else:
                         self.matches[i,j,k]= list(noMatchValue for l in range(len(self.sides)))
 
@@ -385,8 +385,8 @@ class Puzzle:
 #                    self.showMatch([i, matchPiece2, j+1, matchSide2%4])
 #                    print matchValue, matchValue1, matchValue2
 #                    print [i, matchPiece1, j, matchSide1%4]
-        self.showMatch(matchId1)
-        self.showMatch(matchId2)
+        # self.showMatch(matchId1)
+        # self.showMatch(matchId2)
         print matchId1, matchId2
         return matchId1
 
@@ -497,6 +497,8 @@ class Puzzle:
             self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]+d+1)]
             self.usedPieces.append(newNeighbour[0])
             oldLoc1 = np.add(oldLoc1, dir1)
+            self.showSolvedPuzzle()
+
 
         # Check the other direction
         newLoc = [x,y]
@@ -512,11 +514,12 @@ class Puzzle:
             self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]+d+2)]
             self.usedPieces.append(newNeighbour[0])
             oldLoc2 = np.add(oldLoc2, dir2)
+            self.showSolvedPuzzle()
 
 
 
     def solvePuzzle(self):
-        
+
         self.matches = np.empty((len(self.puzzlePieces), len(self.puzzlePieces), 4, 4), dtype = 'float64')
         matchid = self.getBestMatch()
         piece1, piece2, orientation1, orientation2 = matchid
@@ -550,7 +553,8 @@ class Puzzle:
 
             # We added an extra piece, now we have an L shaped, fill it up to a rectangle again
             self.fillRectangle(matchId)
-            self.showSolvedPuzzle()
+            # self.showSolvedPuzzle()
+        self.showSolvedPuzzle()
 
 
 ### End Of File ###
