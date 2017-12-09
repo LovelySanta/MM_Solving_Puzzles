@@ -5,7 +5,7 @@ import cv2
 
 puzzleType="tiles"
 puzzleArrangement="rotated"
-puzzleSize="3x3"
+puzzleSize="4x4"
 puzzleNumber="04"
 
 
@@ -17,7 +17,7 @@ puzzle.readImageFromFile('images/'+puzzleType+'/'+puzzleType+'_'+puzzleArrangeme
 
 #TODO: determine settings
 puzzleHasBackground = False
-puzzlePiecesAmount = 9 # Only needed if not with background
+puzzlePiecesAmount = 16 # Only needed if not with background
 puzzleHasJigSaw = False
 
 

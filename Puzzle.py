@@ -270,7 +270,7 @@ class Puzzle:
         # Perfect match
         elif dif == 0:
             #cv2.imshow('diff', abs(cv2.absdiff(edge2, edge1))[:,0])
-            return sum(sum(abs(cv2.absdiff(edge2, edge1)*0.1)))*100.0/len(edge1)
+            return sum(sum(abs(cv2.absdiff(edge2, edge1)*0.1)))*10.0/len(edge1)
 
         # Small mismatch (rotation error)
         elif dif > 0:
@@ -301,6 +301,8 @@ class Puzzle:
                 edge1 = self.puzzlePieces[i].getEdge(self.sides[k])
                 # Match this side to all other sides of other pieces.
                 for j in range(numberOfPieces):
+#                    name = "piece"+str(j)
+#                    cv2.imshow(name, self.puzzlePieces[j].piece)
                     if not (i == j):
                         for l in range(numberOfSides):
                             # Get the matching value
@@ -314,14 +316,13 @@ class Puzzle:
                                 bestmatch = match
                                 matchid = [i,j,k,l]
                                 rev = [j,i,l,k]
-                            #if j == 2 and k == 2 and i == 8:
-                                #print match
-                                #print [i,j,k,l]
-                                # self.showMatch([i,j,k,l])
                     else:
                         self.matches[i,j,k]= list(noMatchValue for l in range(len(self.sides)))
+                    
 
         # Return all matching values we calculated and the index of the two best matchings
+#        cv2.waitKey()
+#        cv2.destroyAllWindows()
         return matchid
 
 
@@ -374,20 +375,20 @@ class Puzzle:
             if i not in self.usedPieces:
                 # For each side of the piece
                 for j in range(len(self.matches[0,0,0])):
-                    matchValue1 = self.matches[i, matchPiece1, j, (matchSide1)%4]
-                    matchValue2 = self.matches[i, matchPiece2, (j+1)%4, (matchSide2+1)%4]
+                    matchValue1 = self.matches[matchPiece1, i, (matchSide1)%4, j]
+                    matchValue2 = self.matches[matchPiece2, i, (matchSide2)%4, (j+1)%4]
                     matchValue = matchValue1**2/100.0 + matchValue2**2/100.0
                     if matchValue < bestMatchValue:
                         bestMatchValue = matchValue
                         matchId1 = [i, matchPiece1, j, matchSide1%4]
                         matchId2 = [i, matchPiece2, j+1, matchSide2%4]
-#                    self.showMatch([i, matchPiece1, j, matchSide1%4])
-#                    self.showMatch([i, matchPiece2, j+1, matchSide2%4])
-#                    print matchValue, matchValue1, matchValue2
+                    
+
 #                    print [i, matchPiece1, j, matchSide1%4]
-        # self.showMatch(matchId1)
-        # self.showMatch(matchId2)
+        self.showMatch(matchId1)
+        self.showMatch(matchId2)
         print matchId1, matchId2
+
         return matchId1
 
 
@@ -494,7 +495,7 @@ class Puzzle:
             newNeighbour[2] = newNeighbour[2]
             # We found a match, add it to the pieces to match, and do again in same direction
             newLoc = np.add(newLoc, dir1)
-            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]+d+1)]
+            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]-d+3)]
             self.usedPieces.append(newNeighbour[0])
             oldLoc1 = np.add(oldLoc1, dir1)
             self.showSolvedPuzzle()
@@ -511,7 +512,7 @@ class Puzzle:
             newNeighbour = self.getNextBestMatches2D([oldPiece, newPiece])
             # We found a match, add it to the pieces to match, and do again in same direction
             newLoc = np.add(newLoc, dir2)
-            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]+d+2)]
+            self.solvedPuzzle[tuple(newLoc)] = [newNeighbour[0],(newNeighbour[2]-d+2)]
             self.usedPieces.append(newNeighbour[0])
             oldLoc2 = np.add(oldLoc2, dir2)
             self.showSolvedPuzzle()
