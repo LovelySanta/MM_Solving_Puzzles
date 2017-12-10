@@ -138,7 +138,7 @@ class Puzzle:
                 piece = np.concatenate((empty, piece, empty), axis = 1)
 
                 # Find the rotation using ransac
-                hoek = self.rotateRansac(pts)
+                hoek = self.rotateRansac(pts, y, x, h, w)
 
                 # Rotate the picture over given angle using a tranformation matrix
                 M = cv2.getRotationMatrix2D((len(piece[0])*0.5, len(piece)*0.5),hoek,1)
@@ -147,6 +147,9 @@ class Puzzle:
                 # Create new piece instance and add it to the Puzzle:pieces
                 puzzlePiece = PuzzlePiece(rotatedPiece)
                 self.puzzlePieces.append(puzzlePiece)
+                cv2.imshow("straigthened", puzzlePiece.piece)
+                cv2.waitKey()
+                cv2.destroyAllWindows()
 
 
 
@@ -185,7 +188,7 @@ class Puzzle:
 
 
 
-    def rotateRansac(self, contour):
+    def rotateRansac(self, contour, x, y, h, w):
         T_i = len(contour)/10
         teller = 0
         line = [0,1]
@@ -193,6 +196,7 @@ class Puzzle:
         finished = False
 
         while(finished == False):
+            img = np.copy(self.image[x:x+h, y:y+w])
             line[0] = []
             line[1] = []
             # Change T_d dynamicly
@@ -244,6 +248,7 @@ class Puzzle:
                     if(abs(r1-r2) < T_d):
                         line[0] = np.append(line[0],contour[k][0][0])
                         line[1] = np.append(line[1],contour[k][0][1])
+                        cv2.circle(img, tuple(np.add(contour[k][0], [-y,-x])), 2, (255,255,255), 2)
                     # Check if we met T_i
                     if(len(line[0]) > T_i):
                         finished = True
@@ -256,6 +261,11 @@ class Puzzle:
             A,B = np.polyfit(line[1], line[0], 1)
             hoek = 90-np.rad2deg(np.arctan(A))
         # Return the angle in degrees
+        
+        cv2.circle(img,tuple(np.add(contour[i][0], [-y,-x])), 2, (255,0,0), 2)          
+        cv2.circle(img,(x2-y,y2-x), 2, (0,0,255), 2)   
+        cv2.imshow('im', img)
+        
         return hoek
 
 
@@ -265,7 +275,7 @@ class Puzzle:
 
         # If dimensions mismatch too much (rectangle), it won't match at all
         if abs(dif) > 5:
-            return 50000
+            return 5000000
 
         # Perfect match
         elif dif == 0:
